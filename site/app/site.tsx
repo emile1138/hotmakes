@@ -5,7 +5,11 @@ import {featuredEpisode,previousEpisodes,orderEpisodes,mergeEpisodes} from '../l
 // Written every few minutes by .github/workflows/refresh-episodes.yml
 const DATA='https://raw.githubusercontent.com/emile1138/hotmakes/data';
 const initial:any=seed;
-const nav=[['/','The show'],['/episodes','Episodes'],['/prints','3D prints'],['/guests','Guests'],['/donate','Support the show']];
+const nav=[['/','The Show'],['/episodes','Episodes'],['/prints','Community Files'],['/guests','Guests'],['/link-dumps','Link Dumps'],['/donate','Support the Show'],['/contact','Contact']];
+// Contact messages are sent by FormSubmit, which emails them to this address. The first message
+// triggers a one-time confirmation email to the inbox that has to be activated.
+const CONTACT_EMAIL='info@hotmakes.com';
+const CONTACT_ENDPOINT=`https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
 function Out({href,children,...props}:any){return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}<span aria-hidden="true"> ↗</span></a>}
 function date(s:string){return s?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(s)):''}
 function Thumbnail({episode}:any){return <div className="thumbnail"><img src={episode.thumbnail||`https://i.ytimg.com/vi/${episode.id}/hqdefault.jpg`} alt="" loading="lazy"/><span className="play" aria-hidden="true">▶</span></div>}
@@ -68,8 +72,36 @@ export default function Site({page='home'}:{page?:string}){
  {page==='episodes'&&<><PageHead label="THE ARCHIVE" title="Every era. All the makes." description="Explore HotMakes from The Edge of Tech days through the show’s own YouTube channel."/><p className="catalog-note">{data.archiveComplete?'Publicly available HotMakes episodes from both channels.':`${data.episodes.length} verified video listings from both channels. Simulcasts are retained; missing or unlisted broadcasts are still being checked.`}</p><div className="controls"><label>Find an episode<input value={query} onChange={e=>{setQuery(e.target.value);setLimit(24)}} placeholder="Search titles, guests, or episode numbers" type="search"/></label><label>Channel<select value={filter} onChange={e=>{setFilter(e.target.value);setLimit(24)}}><option value="all">Both channels</option>{[...new Set(data.episodes.map((e:any)=>e.channel))].filter(Boolean).map((c:any)=><option key={c}>{c}</option>)}</select></label></div><p className="small">{filtered.length} {filtered.length===1?'episode':'episodes'}</p><div className="archive-grid">{filtered.slice(0,limit).map((e:any)=><EpisodeCard key={e.id} e={e}/>)}</div>{!filtered.length&&<Empty text="No episodes match that search."/>}{filtered.length>limit&&<button className="button load-more" onClick={()=>setLimit(n=>n+24)}>Show more episodes</button>}</>}
  {page==='prints'&&<><PageHead label="FROM THE SHOW TO YOUR BUILD PLATE" title="Print a little HotMakes." description="Show-inspired models, community collaborations, and familiar troublemakers for your printer. Get the files directly from their creators."/><p className="catalog-note">This collection is growing. Verified creator links are listed below; the Banana for Scale link and additional MakerWorld releases are still being tracked down.</p><div className="controls"><label>Find a print<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search models or creators"/></label><label>Platform<select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All platforms</option><option>Thangs</option><option>Printables</option><option>MakerWorld</option></select></label></div><div className="models-grid">{models.map((m:any,i:number)=><article className="model" key={m.title}><p className="eyebrow">{m.creator}</p><h2>{m.title}</h2><p>{m.description}</p><div className="link-row">{m.links.map((l:any)=><Out key={l.url} href={l.url}>{l.platform}</Out>)}</div>{m.episodeUrl&&<Out className="small" href={m.episodeUrl}>See it on the show</Out>}</article>)}</div>{!models.length&&<Empty text={filter==='MakerWorld'?'No verified MakerWorld listings added yet.':'No prints match that search.'}/>}<p className="small">Files remain on their original platforms. Check each creator’s license and printing instructions before use.</p></>}
  {page==='guests'&&<><PageHead label="THE PEOPLE BEHIND THE MAKES" title="Good company. Great conversations." description="Meet the creators who have joined HotMakes, in order of their appearances. Follow their work and revisit their episodes."/><p className="catalog-note">Guest index in progress. Only confirmed appearances are listed; profiles link to verified creator accounts. Most-active accounts are still being reviewed.</p><div className="controls"><label>Find a guest<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search guests or episode numbers"/></label><label>Appearance order<select value={sort} onChange={e=>setSort(e.target.value)}><option value="oldest">Earliest first</option><option value="newest">Most recent first</option></select></label></div><div className="guest-list">{guests.map((g:any,i:number)=><article className="guest" key={`${g.episode}-${g.name}`}><span className="guest-episode">EP. {g.episode}</span><div><h2>{g.name}</h2><p>{g.episodeTitle}</p>{g.social&&<Out href={g.social}>Follow {g.name}</Out>}</div><Out href={`https://www.youtube.com/watch?v=${g.videoId}`} className="button">Watch episode</Out></article>)}</div>{!guests.length&&<Empty text="No guests match that search."/>}</>}
+ {page==='contact'&&<><PageHead label="GET IN TOUCH" title="Say hello." description="Questions, ideas, collaborations, or a project you think we should see? Send us a note and we’ll get back to you."/><ContactForm/></>}
+ {page==='link-dumps'&&<><PageHead label="FROM THE SHOW" title="Link Dumps" description="Links from the show, collected in one place."/><Empty text="The first link dump is coming soon."/></>}
  {page==='donate'&&<><PageHead label="FUELED BY THE COMMUNITY" title="Keep the makes coming." description="If HotMakes has inspired your next project or made your Monday a little better, you can help keep the show going."/><div className="donation-layout"><section className="donation-copy"><h2>For the show.<br/>Back to the community.</h2><p>HotMakes doesn’t make a profit, and we don’t pocket donations ourselves. Contributions go back into the show and help us keep creating something for the maker community.</p><p>Support helps cover the costs of producing and running HotMakes. We’ll share a more detailed breakdown here once it’s confirmed.</p><p>Watching, sharing your makes, and joining the conversation are valuable ways to support us, too. Donations are always optional.</p></section><aside className="donate-box"><img src="/assets/favicon.png" alt=""/><h2>A little fuel for the fire.</h2><p>Our PayPal donation link will be available here soon.</p><span className="donate-pending">Donations aren’t open on this page yet</span><p className="small">Thank you for being part of HotMakes.</p></aside></div></>}
  </main><footer className="site-footer wrap"><div className="footer-brand"><img src="/assets/hotmakes-logo-solid.svg" alt="HotMakes"/><p>Keep making. Stay curious. Be yourself!</p></div><nav className="footer-nav" aria-label="Footer">{nav.map(([url,label])=><a key={url} href={url}>{label}</a>)}<Out href="https://www.youtube.com/channel/UCeqoSThyqiZgIMhGBCCLLcg">YouTube</Out></nav><p className="copyright">© {new Date().getFullYear()} HotMakes. All rights reserved.</p></footer></div></>
+}
+function ContactForm(){
+ const [status,setStatus]=useState<'idle'|'sending'|'sent'|'error'>('idle');
+ async function submit(e:any){
+  e.preventDefault();
+  const form=e.currentTarget,d=new FormData(form);
+  if(d.get('_honey'))return; // hidden field that only bots fill in
+  setStatus('sending');
+  try{
+   const res=await fetch(CONTACT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({name:d.get('name'),email:d.get('email'),message:d.get('message'),_subject:'New message from the HotMakes website',_template:'table',_captcha:'false'})});
+   const out:any=await res.json().catch(()=>({}));
+   if(!res.ok||out.success==='false'||out.success===false)throw Error();
+   form.reset();setStatus('sent');
+  }catch{setStatus('error')}
+ }
+ return <form className="contact-form" onSubmit={submit}>
+ <label>Your name<input name="name" type="text" autoComplete="name" required maxLength={120}/></label>
+ <label>Your email<input name="email" type="email" autoComplete="email" required maxLength={200}/></label>
+ <label>Message<textarea name="message" required rows={7} maxLength={5000}/></label>
+ <input className="hp" name="_honey" type="text" tabIndex={-1} autoComplete="off" aria-hidden="true"/>
+ <div className="form-actions"><button className="button" type="submit" disabled={status==='sending'}>{status==='sending'?'Sending...':'Send message'}</button></div>
+ <div role="status" aria-live="polite">
+  {status==='sent'&&<p className="connection-note">Message sent. Thanks for reaching out!</p>}
+  {status==='error'&&<p className="connection-note">That didn’t go through. Please try again, or email us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>}
+ </div>
+ </form>
 }
 function PageHead({label,title,description}:any){return <header className="page-head"><p className="eyebrow">{label}</p><h1>{title}</h1><p className="lede">{description}</p></header>}
 function Empty({text}:any){return <p className="empty" role="status">{text}</p>}
