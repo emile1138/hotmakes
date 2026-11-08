@@ -5,7 +5,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {normalizeVideo} from '../lib/episodes.mjs';
+import {normalizeVideo, isStaleUpcoming} from '../lib/episodes.mjs';
 
 const CHANNEL = 'UCeqoSThyqiZgIMhGBCCLLcg';
 const LEGACY = 'UC1Ak7Ir1WMOWauY_oH00-Qg';
@@ -86,7 +86,7 @@ export async function run(task, outDir, key) {
       for (const item of r.items || []) if (TITLE.test(item.snippet.title)) known.add(item.id.videoId);
     }
   }
-  const episodes = await details(key, [...known]);
+  const episodes = (await details(key, [...known])).filter(e => !isStaleUpcoming(e));
   episodes.sort((a, b) => a.id.localeCompare(b.id));
   return writeIfChanged(file, episodes, {});
 }
