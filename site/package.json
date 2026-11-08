@@ -1,0 +1,21 @@
+{
+  "name": "hotmakes-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22.13.0"},
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test tests/episodes.test.mjs",
+    "refresh": "node scripts/refresh-episodes.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.0.13"
+  }
+}
