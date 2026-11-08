@@ -12,13 +12,17 @@ function Thumbnail({episode}:any){return <div className="thumbnail"><img src={ep
 function EpisodeCard({e}:any){return <Out href={`https://www.youtube.com/watch?v=${e.id}`} className="episode-card"><Thumbnail episode={e}/><div className="episode-meta">{e.number?`EPISODE ${e.number}`:'SPECIAL'} · {e.channel||'HotMakes'}</div><h3>{e.title.replace(/^#?HotMakes\s*(?:Ep\.?\s*\d+\s*[-–:]?\s*)?/i,'')}</h3>{e.startedAt&&<p className="small">{date(e.startedAt)}</p>}</Out>}
 const SPARK_COLORS=['#e32626','#f9ef1c','#ff8a00','#e32626','#f9ef1c'];
 const SPARKS=Array.from({length:18},(_,i)=>{const a=i*137.5*Math.PI/180,r=26+(i*7)%24;return{x:+(Math.cos(a)*r).toFixed(1),y:+(Math.sin(a)*r*.8).toFixed(1),wx:(6+(i*5)%7)*(i%2?1:-1),wy:(4+(i*3)%6)*(i%3?-1:1),s:6+(i*5)%9,c:SPARK_COLORS[i%5],d:+(.2+i*.055).toFixed(3)}});
-// Plays once per visit on the homepage. Add ?intro to the address to see it again.
+// Plays when someone arrives at the homepage or refreshes it. It does not replay when they
+// click around the site or press Back. Add ?intro to the address to force it.
 function introStart(page:string):'play'|'done'{
  if(page!=='home')return 'done';
  try{
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return 'done';
   if(new URLSearchParams(location.search).has('intro'))return 'play';
-  if(sessionStorage.getItem('hm-splash'))return 'done';
+  const nav=performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming|undefined;
+  if(nav?.type==='reload')return 'play';
+  if(nav?.type==='back_forward')return 'done';
+  if(document.referrer&&new URL(document.referrer).origin===location.origin)return 'done';
  }catch{}
  return 'play';
 }
@@ -35,7 +39,7 @@ function Splash({leaving,onSkip}:{leaving:boolean,onSkip:()=>void}){
 export default function Site({page='home'}:{page?:string}){
  const [phase,setPhase]=useState<'play'|'reveal'|'done'>(()=>introStart(page));
  useEffect(()=>{
-  if(phase==='play'){try{sessionStorage.setItem('hm-splash','1')}catch{}const t=setTimeout(()=>setPhase('reveal'),3900);const key=(e:KeyboardEvent)=>{if(e.key==='Escape'||e.key==='Enter'||e.key===' ')setPhase('reveal')};addEventListener('keydown',key);return()=>{clearTimeout(t);removeEventListener('keydown',key)}}
+  if(phase==='play'){const t=setTimeout(()=>setPhase('reveal'),3900);const key=(e:KeyboardEvent)=>{if(e.key==='Escape'||e.key==='Enter'||e.key===' ')setPhase('reveal')};addEventListener('keydown',key);return()=>{clearTimeout(t);removeEventListener('keydown',key)}}
   if(phase==='reveal'){const t=setTimeout(()=>setPhase('done'),1900);return()=>clearTimeout(t)}
  },[phase]);
  const [data,setData]=useState<any>({episodes:initial.episodes,mode:'snapshot',archiveComplete:initial.archiveComplete});const [query,setQuery]=useState('');const [filter,setFilter]=useState('all');const [sort,setSort]=useState('oldest');const [limit,setLimit]=useState(24);const [loadError,setLoadError]=useState(false);const [playerId,setPlayerId]=useState<string|null>(null);const [refreshVersion,setRefreshVersion]=useState(0);
