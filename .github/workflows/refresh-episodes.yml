@@ -1,0 +1,71 @@
+name: Refresh HotMakes episodes
+
+# Runs the YouTube check and saves the result as JSON on the "data" branch.
+# Nothing here changes the site's own files or triggers a rebuild.
+# Times are UTC. Show time is 6 p.m. Central, which is 23:00 or 00:00 UTC.
+on:
+  schedule:
+    - cron: '*/5 22-23,0-3 * * *'   # every 5 minutes from about 5 p.m. to 10 p.m. Central
+    - cron: '17 4-21 * * *'         # hourly the rest of the day, with the deeper live/upcoming search
+    - cron: '41 9 * * *'            # once a day: full archive with broadcast dates
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'recent or archive'
+        default: 'recent'
+
+concurrency:
+  group: refresh-episodes
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Pick the task
+        id: pick
+        run: |
+          case "${{ github.event.schedule }}" in
+            "41 9 * * *")   echo "task=archive" >> "$GITHUB_OUTPUT"; echo "deep=0" >> "$GITHUB_OUTPUT" ;;
+            "17 4-21 * * *") echo "task=recent"  >> "$GITHUB_OUTPUT"; echo "deep=1" >> "$GITHUB_OUTPUT" ;;
+            "")             echo "task=${{ github.event.inputs.task || 'recent' }}" >> "$GITHUB_OUTPUT"; echo "deep=1" >> "$GITHUB_OUTPUT" ;;
+            *)              echo "task=recent"  >> "$GITHUB_OUTPUT"; echo "deep=0" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Check out the data branch (creates it the first time)
+        run: |
+          git fetch origin data || true
+          if git rev-parse --verify origin/data >/dev/null 2>&1; then
+            git worktree add -B data data-out origin/data
+          else
+            git worktree add --detach data-out
+            git -C data-out checkout --orphan data
+            git -C data-out rm -rf . >/dev/null 2>&1 || true
+          fi
+
+      - name: Ask YouTube
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          DEEP: ${{ steps.pick.outputs.deep }}
+        run: node scripts/refresh-episodes.mjs "${{ steps.pick.outputs.task }}" data-out
+
+      - name: Save changes
+        working-directory: data-out
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "Nothing to save."; exit 0; fi
+          git commit -m "Update episode data"
+          for i in 1 2 3; do git push origin data && exit 0; git pull --rebase origin data || true; done
+          exit 1
