@@ -31,3 +31,38 @@ export function mergeEpisodes(seed, archive, current) {
   }
   return [...map.values()];
 }
+
+// ---- Episodes page helpers ----
+const HOUR = 3600e3;
+export function episodeTime(e) {
+  const t = Date.parse(e.startedAt || e.scheduledAt || e.publishedAt || '');
+  return Number.isNaN(t) ? null : t;
+}
+// Calendar year of the broadcast, in the show's home time zone.
+export function episodeYear(e) {
+  const t = episodeTime(e);
+  if (t === null) return null;
+  return Number(new Intl.DateTimeFormat('en-US', {timeZone: 'America/Chicago', year: 'numeric'}).format(t));
+}
+const normTitle = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// The same show was sometimes streamed to both channels. Keep the HotMakes copy and drop the Edge of Tech copy.
+// Match on episode number plus broadcast time (Ep 153 aired a week apart on each channel, so those stay),
+// or on title plus time for specials with no number.
+export function dedupeSimulcasts(items) {
+  const home = items.filter(e => e.channel === 'HotMakes');
+  return items.filter(e => {
+    if (e.channel === 'HotMakes') return true;
+    const t = episodeTime(e);
+    return !home.some(h => {
+      const ht = episodeTime(h);
+      if (e.number && h.number) return e.number === h.number && (t === null || ht === null || Math.abs(t - ht) <= 48 * HOUR);
+      if (!e.number && !h.number) return t !== null && ht !== null && Math.abs(t - ht) <= 6 * HOUR && normTitle(e.title) === normTitle(h.title);
+      return false;
+    });
+  });
+}
+export function yearCounts(items) {
+  const m = new Map();
+  for (const e of items) { const y = episodeYear(e); if (y !== null) m.set(y, (m.get(y) || 0) + 1); }
+  return [...m.entries()].sort((a, b) => b[0] - a[0]);
+}

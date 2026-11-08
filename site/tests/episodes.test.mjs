@@ -31,3 +31,21 @@ test('stream scheduled a few hours ago is still treated as upcoming',()=>{
   const now=Date.parse('2026-11-08T22:00:00Z');
   assert.equal(featuredEpisode([e('1','completed'),e('2','upcoming',{scheduledAt:'2026-11-08T18:00:00Z'})],now).id,'2');
 });
+
+import {dedupeSimulcasts, yearCounts, episodeYear} from '../lib/episodes.mjs';
+const mk=(id,channel,number,title,startedAt)=>({id,channel,number,title,startedAt,status:'completed'});
+test('dedupeSimulcasts keeps HotMakes copy, keeps Edge-only and week-apart reruns', () => {
+  const items=[
+    mk('h1','HotMakes',100,'HotMakes Ep 100','2022-04-18T23:00:00Z'),mk('e1','The Edge of Tech',100,'HotMakes Ep 100','2022-04-18T23:10:00Z'),
+    mk('e2','The Edge of Tech',20,'Edge Ep 20','2021-01-01T23:00:00Z'),
+    mk('h3','HotMakes',153,'Ep 153','2023-07-03T23:00:00Z'),mk('e3','The Edge of Tech',153,'Ep 153','2023-07-10T23:00:00Z'),
+    mk('h4','HotMakes',null,'Holiday Special!','2024-12-17T00:00:00Z'),mk('e4','The Edge of Tech',null,'The Holiday Special','2024-12-17T00:00:00Z'),
+    mk('h5','HotMakes',null,'Holiday Special!','2024-12-17T00:00:00Z'),mk('e5','The Edge of Tech',null,'Holiday Special','2024-12-17T00:30:00Z'),
+  ];
+  const ids=dedupeSimulcasts(items).map(e=>e.id).sort();
+  assert.deepEqual(ids,['e2','e3','e4','h1','h3','h4','h5']);
+});
+test('episodeYear uses Central time; yearCounts sorts newest first', () => {
+  assert.equal(episodeYear({startedAt:'2026-01-01T03:00:00Z'}),2025);
+  assert.deepEqual(yearCounts([{startedAt:'2024-06-01T18:00:00Z'},{startedAt:'2026-06-01T18:00:00Z'},{startedAt:'2026-07-01T18:00:00Z'},{}]),[[2026,2],[2024,1]]);
+});
