@@ -57,7 +57,7 @@ jobs:
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           DEEP: ${{ steps.pick.outputs.deep }}
-        run: node scripts/refresh-episodes.mjs "${{ steps.pick.outputs.task }}" data-out
+        run: node site/scripts/refresh-episodes.mjs "${{ steps.pick.outputs.task }}" data-out
 
       - name: Save changes
         working-directory: data-out
