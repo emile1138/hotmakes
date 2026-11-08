@@ -28,3 +28,23 @@ textarea{border:1px solid #fff7;border-radius:5px;padding:12px 14px;background:#
   .year-nav{position:static;flex-direction:row;flex-wrap:wrap;border-right:0;padding-right:0}
   .year-link{padding:6px 12px;border:1px solid var(--line);border-radius:999px}
 }
+
+/* Hot Dumps */
+a.chip{cursor:pointer;text-decoration:none;opacity:1;background:#ffffff1a}
+a.chip:hover{background:var(--white);color:var(--deep)}
+.dump-list{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.dump{border:1px solid var(--line);border-radius:8px;scroll-margin-top:90px}
+.dump summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;align-items:baseline;padding:14px 18px;font-weight:700}
+.dump summary::-webkit-details-marker{display:none}
+.dump summary::before{content:"+";font-weight:400;margin-right:12px;width:12px;display:inline-block}
+.dump[open] summary::before{content:"−"}
+.dump summary:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+.dump-title{flex:1;min-width:0}
+.dump-meta{font-weight:400;font-size:13px;opacity:.85;white-space:nowrap}
+.dump-body{padding:4px 18px 20px}
+.dump-items,.dump-extras{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:14px}
+.dump-items li{border-top:1px solid var(--line);padding-top:12px}
+.dump-items p{margin:4px 0;overflow-wrap:anywhere}
+.dump-extras li{overflow-wrap:anywhere}
+.dump-link{font-size:13px;font-weight:700}
+@media(max-width:640px){.dump summary{flex-direction:column;gap:2px}.dump-meta{white-space:normal}}
