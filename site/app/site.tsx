@@ -7,7 +7,7 @@ import dumpEpisodes from '../data/link-dump-episodes.json';
 // Written every few minutes by .github/workflows/refresh-episodes.yml
 const DATA='https://raw.githubusercontent.com/emile1138/hotmakes/data';
 const initial:any=seed;
-const nav=[['/','The Show'],['/episodes','Episodes'],['/prints','Community Files'],['/guests','Guests'],['/link-dumps','Hot Dumps'],['/donate','Support the Show'],['/contact','Contact']];
+const nav=[['/','The Show'],['/episodes','Episodes'],['/prints','Community Files'],['/guests','Guests'],['/link-dumps','Link Dumps'],['/donate','Support the Show'],['/contact','Contact']];
 // Contact messages are sent by FormSubmit, which emails them to this address. The first message
 // triggers a one-time confirmation email to the inbox that has to be activated.
 const CONTACT_EMAIL='info@hotmakes.com';
