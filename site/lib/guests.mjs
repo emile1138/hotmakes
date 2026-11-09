@@ -4,9 +4,10 @@
 export function slugify(name) {
   return String(name).toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
+// The name shown on the site is the online name or handle. Records written "Real Name / Handle" show only the handle.
 export function displayParts(name) {
-  const [person, ...rest] = String(name).split(' / ');
-  return {person: person.trim(), brand: rest.join(' / ').trim()};
+  const parts = String(name).split(' / ').map(p => p.trim()).filter(Boolean);
+  return {person: parts.length > 1 ? parts.slice(1).join(' / ') : (parts[0] || ''), brand: ''};
 }
 export function initials(name) {
   const words = displayParts(name).person.split(/\s+/).map(w => w.replace(/[^A-Za-z0-9]/g, '')).filter(Boolean);

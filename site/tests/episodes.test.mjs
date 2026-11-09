@@ -50,7 +50,7 @@ test('episodeYear uses Central time; yearCounts sorts newest first', () => {
   assert.deepEqual(yearCounts([{startedAt:'2024-06-01T18:00:00Z'},{startedAt:'2026-06-01T18:00:00Z'},{startedAt:'2026-07-01T18:00:00Z'},{}]),[[2026,2],[2024,1]]);
 });
 
-import {groupGuests, topGuests, slugify, initials} from '../lib/guests.mjs';
+import {groupGuests, topGuests, slugify, initials, displayParts} from '../lib/guests.mjs';
 test('groupGuests merges variants, splits joint appearances, ranks by appearances', () => {
   const recs=[
     {name:'Sam Prentice',episode:78,videoId:'a'},{name:'Sam Prentice',episode:108,videoId:'b',social:'https://x.com/s'},
@@ -66,5 +66,5 @@ test('groupGuests merges variants, splits joint appearances, ranks by appearance
   assert.equal(by['Kodi / 3D Fused'].appearances.length,2);
   assert.deepEqual(topGuests(g,2,['caleb fairres']).map(x=>x.name),['Sam Prentice','Kodi / 3D Fused']);
   assert.equal(slugify('Angus / Maker’s Muse'),'angus-maker-s-muse');
-  assert.equal(initials('Angus / Maker’s Muse'),'A');assert.equal(initials('Sam Prentice'),'SP');
+  assert.equal(displayParts('Angus / Maker’s Muse').person,'Maker’s Muse');assert.equal(displayParts('Sam Prentice').person,'Sam Prentice');assert.equal(initials('Angus / Maker’s Muse'),'MM');assert.equal(initials('Sam Prentice'),'SP');
 });
