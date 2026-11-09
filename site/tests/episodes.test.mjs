@@ -49,3 +49,22 @@ test('episodeYear uses Central time; yearCounts sorts newest first', () => {
   assert.equal(episodeYear({startedAt:'2026-01-01T03:00:00Z'}),2025);
   assert.deepEqual(yearCounts([{startedAt:'2024-06-01T18:00:00Z'},{startedAt:'2026-06-01T18:00:00Z'},{startedAt:'2026-07-01T18:00:00Z'},{}]),[[2026,2],[2024,1]]);
 });
+
+import {groupGuests, topGuests, slugify, initials} from '../lib/guests.mjs';
+test('groupGuests merges variants, splits joint appearances, ranks by appearances', () => {
+  const recs=[
+    {name:'Sam Prentice',episode:78,videoId:'a'},{name:'Sam Prentice',episode:108,videoId:'b',social:'https://x.com/s'},
+    {name:'Sam Prentice & Nic / Polymaker',episode:118,videoId:'c'},
+    {name:'Kodi / 3D Fused',episode:8,videoId:'d'},{name:'Kodi / 3DFused & 3Di-Industries',episode:166,videoId:'e'},
+    {name:'Caleb Fairres',episode:85,videoId:'f'},{name:'Caleb Fairres',episode:106,videoId:'g'},{name:'Caleb Fairres',episode:107,videoId:'h'},
+  ];
+  const g=groupGuests(recs,{'Sam Prentice & Nic / Polymaker':['Sam Prentice','Nic / Polymaker'],'Kodi / 3DFused & 3Di-Industries':['Kodi / 3D Fused']});
+  const by=Object.fromEntries(g.map(x=>[x.name,x]));
+  assert.deepEqual(by['Sam Prentice'].appearances.map(a=>a.episode),[78,108,118]);
+  assert.equal(by['Sam Prentice'].social,'https://x.com/s');
+  assert.equal(by['Nic / Polymaker'].appearances.length,1);
+  assert.equal(by['Kodi / 3D Fused'].appearances.length,2);
+  assert.deepEqual(topGuests(g,2,['caleb fairres']).map(x=>x.name),['Sam Prentice','Kodi / 3D Fused']);
+  assert.equal(slugify('Angus / Maker’s Muse'),'angus-maker-s-muse');
+  assert.equal(initials('Angus / Maker’s Muse'),'A');assert.equal(initials('Sam Prentice'),'SP');
+});
