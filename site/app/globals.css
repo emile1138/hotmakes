@@ -39,7 +39,7 @@ a.chip:hover{background:var(--white);color:var(--deep)}
 .leaderboard ol{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .leaderboard li{display:grid;grid-template-columns:34px 118px minmax(0,1fr);gap:8px;align-items:center;font-size:14px}
 .lb-place{color:#fff;font-weight:800;font-size:15px;display:flex;justify-content:center}
-.lb-flame{width:30px;height:36px;margin:-6px 0;overflow:visible}
+.lb-flame{position:relative;display:block;width:36px;height:43px;margin:-9px 0}.lb-flame img{width:100%;height:100%;display:block}.lb-flame b{position:absolute;left:50%;top:64%;transform:translate(-50%,-50%);color:#fff;font-size:13px;font-weight:900;line-height:1;text-shadow:-1px -1px 0 #9d0f14,1px -1px 0 #9d0f14,-1px 1px 0 #9d0f14,1px 1px 0 #9d0f14,0 0 3px #9d0f14}
 .lb-name{all:unset;cursor:pointer;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline;text-underline-offset:3px}
 .lb-name:hover{color:var(--yellow)}
 .lb-name:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
