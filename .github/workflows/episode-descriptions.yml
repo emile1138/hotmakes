@@ -1,0 +1,33 @@
+name: Collect episode descriptions
+
+# One-off, manual. Reads every archived episode's title and description from YouTube and saves them
+# to a scratch branch so guest names and social links can be gathered. Does not touch the site or the data branch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Get the archive list
+        run: git fetch origin data && git show origin/data:archive.json > archive.json
+      - name: Ask YouTube
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: node site/scripts/fetch-descriptions.mjs archive.json descriptions.json
+      - name: Save to scratch branch
+        run: |
+          mkdir out && cp descriptions.json out/ && cd out
+          git init -q -b scratch-descriptions
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "Episode descriptions"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" scratch-descriptions
